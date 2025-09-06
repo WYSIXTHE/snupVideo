@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
@@ -53,8 +53,11 @@
       cursor:pointer;
     }
     button:hover { filter:brightness(1.1); }
+    button:disabled { background: #333; cursor: not-allowed; }
     .danger { border:1px solid #802828; background:linear-gradient(180deg,#a22,#711); }
     .chip { font-size:13px; padding:6px 10px; border-radius:999px; border:1px solid #263145; background:#0b0d10; color:var(--muted); display:inline-block; }
+    .login-status { font-size: 13px; color: var(--muted); text-align: center; }
+    .card-checkbox { position: absolute; top: 10px; right: 10px; z-index: 10; }
 
     /* GALERIA */
     main {
@@ -74,6 +77,7 @@
       overflow:hidden;
       display:flex;
       flex-direction:column;
+      position: relative;
     }
     .thumb {
       position:relative;
@@ -162,7 +166,6 @@
   </style>
 </head>
 <body>
-  <!-- PANEL LEWY -->
   <aside>
     <h1>🎬 VideoLinki</h1>
     <form id="addForm">
@@ -171,17 +174,21 @@
       <button type="submit">➕ Dodaj</button>
     </form>
     <div><span id="countChip" class="chip">0 filmów</span></div>
-    <button id="clearBtn" class="danger">🗑️ Wyczyść wszystko</button>
+    <h3>Logowanie</h3>
+    <form id="loginForm">
+      <input id="idInput" type="text" placeholder="Wpisz ID" required>
+      <input id="loginInput" type="text" placeholder="Wpisz login" required>
+      <p id="loginStatus" class="login-status">Wylogowano</p>
+    </form>
+    <button id="deleteSelectedBtn" class="danger" disabled>🗑️ Usuń zaznaczone</button>
     <input id="searchInput" type="text" placeholder="🔍 Szukaj...">
     <footer>Zapis lokalny w przeglądarce</footer>
   </aside>
 
-  <!-- GALERIA -->
   <main>
     <div id="grid" class="grid"></div>
   </main>
 
-  <!-- ODTWARZACZ -->
   <dialog id="player">
     <div class="player-head">
       <div>
@@ -192,7 +199,6 @@
     </div>
     <div class="player-body" id="playerBody"></div>
 
-    <!-- KOMENTARZE -->
     <div class="comments" id="commentsList"></div>
     <form class="comment-form" id="commentForm">
       <input id="commentInput" type="text" placeholder="Dodaj komentarz..." required>
@@ -202,11 +208,21 @@
 
   <script>
     const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
     const dbKey = 'videolinki.v2';
     const commentsKey = 'videolinki.comments.v1';
     let items = JSON.parse(localStorage.getItem(dbKey) || '[]');
     let comments = JSON.parse(localStorage.getItem(commentsKey) || '{}');
     let currentId = null;
+
+    // Nowe elementy i stałe do logowania i usuwania
+    const ID_ADMIN = 'admin';
+    const LOGIN_ADMIN = 'admin';
+    const deleteSelectedBtn = $('#deleteSelectedBtn');
+    const idInput = $('#idInput');
+    const loginInput = $('#loginInput');
+    const loginStatus = $('#loginStatus');
+    let isLoggedIn = false;
 
     function save(){ localStorage.setItem(dbKey, JSON.stringify(items)); }
     function saveComments(){ localStorage.setItem(commentsKey, JSON.stringify(comments)); }
@@ -232,16 +248,51 @@
       const q=$('#searchInput').value.toLowerCase();
       const filtered=items.filter(i=>i.title.toLowerCase().includes(q)||i.url.toLowerCase().includes(q));
       $('#countChip').textContent=fmtCount(filtered.length);
+      
       for(const it of filtered){
         const card=document.createElement('div'); card.className='card';
+        card.dataset.id = it.id;
+
         const thumb=document.createElement('div'); thumb.className='thumb';
         if(it.thumb){ let img=new Image(); img.src=it.thumb; thumb.appendChild(img); }
         const play=document.createElement('div'); play.className='play';
         const btn=document.createElement('button'); play.appendChild(btn); thumb.appendChild(play);
+        
         const meta=document.createElement('div'); meta.className='meta';
         meta.innerHTML=`<div class="title">${it.title}</div><div class="url">${it.url}</div>`;
-        card.appendChild(thumb); card.appendChild(meta); grid.appendChild(card);
+        
+        card.appendChild(thumb);
+        card.appendChild(meta);
+        
+        // Dodanie checkboxa
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'card-checkbox';
+        checkbox.dataset.id = it.id;
+        checkbox.onchange = checkSelection;
+        card.appendChild(checkbox);
+
+        grid.appendChild(card);
         btn.onclick=()=>openPlayer(it);
+      }
+    }
+
+    function checkSelection() {
+      const checkedBoxes = $$('.card-checkbox:checked');
+      deleteSelectedBtn.disabled = checkedBoxes.length === 0 || !isLoggedIn;
+    }
+
+    function deleteSelected() {
+      const checkedBoxes = $$('.card-checkbox:checked');
+      if (checkedBoxes.length === 0) return;
+
+      const idsToDelete = Array.from(checkedBoxes).map(cb => cb.dataset.id);
+      
+      if(confirm(`Na pewno usunąć ${idsToDelete.length} filmów?`)){
+        items = items.filter(item => !idsToDelete.includes(item.id));
+        save();
+        render();
+        checkSelection(); // Aktualizuj stan przycisku po usunięciu
       }
     }
 
@@ -273,6 +324,21 @@
       $('#player').showModal();
     }
 
+    function checkLogin() {
+      const id = idInput.value.trim();
+      const login = loginInput.value.trim();
+      if (id === ID_ADMIN && login === LOGIN_ADMIN) {
+        isLoggedIn = true;
+        loginStatus.textContent = 'Zalogowano jako Administrator';
+        loginStatus.style.color = '#6ea8fe';
+      } else {
+        isLoggedIn = false;
+        loginStatus.textContent = 'Wylogowano';
+        loginStatus.style.color = 'var(--muted)';
+      }
+      checkSelection(); // Zaktualizuj stan przycisku usuwania
+    }
+
     $('#closeBtn').onclick=()=>$('#player').close();
     $('#addForm').onsubmit=e=>{
       e.preventDefault();
@@ -281,7 +347,7 @@
       const rec={id:Math.random().toString(36).slice(2),url,title:$('#titleInput').value.trim()||url,...parsed};
       items.unshift(rec); save(); render(); e.target.reset();
     };
-    $('#clearBtn').onclick=()=>{ if(confirm('Na pewno usunąć wszystkie?')){ items=[]; save(); render(); } };
+    deleteSelectedBtn.onclick = deleteSelected;
     $('#searchInput').oninput=render;
 
     $('#commentForm').onsubmit=e=>{
@@ -295,7 +361,11 @@
       renderComments(currentId);
     };
 
+    idInput.oninput = checkLogin;
+    loginInput.oninput = checkLogin;
+
     render();
+    checkLogin();
   </script>
 </body>
 </html>
