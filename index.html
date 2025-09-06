@@ -88,7 +88,10 @@
       display:grid; place-items:center;
     }
     .thumb .play button {
-      width:48px; height:48px; border-radius:999px; border:1px solid #2c3750; background:rgba(20,24,32,.65);
+      width:48px; height:48px;
+      border-radius:999px;
+      border:1px solid #2c3750;
+      background:rgba(20,24,32,.65);
     }
     .thumb .play button:hover { outline:2px solid #2c6fff3a; }
     .meta { padding:10px; font-size:14px; }
@@ -110,44 +113,66 @@
       flex-direction:column;
     }
     dialog::backdrop { background:rgba(3,6,15,.7); }
-    .player-head { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #1f2633; }
-    .player-body { flex:1; display:flex; justify-content:center; align-items:center; background:#000; }
-    .player-body iframe, .player-body video { width:100%; height:100%; max-height:100%; max-width:100%; object-fit:contain; }
-    .comments { padding:12px; border-top:1px solid #1f2633; max-height:30%; overflow-y:auto; background:#141820; }
-    .comment { margin-bottom:8px; color:#fff; padding:6px 8px; background:#1a1f2c; border-radius:6px; }
+    .player-head {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 16px;
+      border-bottom:1px solid #1f2633;
+    }
+    .player-body {
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#000;
+    }
+    .player-body iframe, 
+    .player-body video {
+      width:100%;
+      height:100%;
+      max-height:100%;
+      max-width:100%;
+      object-fit:contain;
+    }
+    .comments {
+      padding:12px;
+      border-top:1px solid #1f2633;
+      max-height:30%;
+      overflow-y:auto;
+      background:#141820;
+    }
+    .comment { 
+      margin-bottom:8px;
+      color:#fff;
+      padding:6px 8px;
+      background:#1a1f2c;
+      border-radius:6px;
+    }
     .comment strong { color:var(--acc); margin-right:6px; }
-    .comment-form { display:flex; gap:8px; padding:10px; border-top:1px solid #1f2633; background:#141820; }
-    .comment-form input { flex:1; }
-    footer { font-size:12px; color:var(--muted); text-align:center; margin-top:auto; }
+    .comment-form {
+      display:flex; gap:8px; padding:10px; border-top:1px solid #1f2633;
+      background:#141820;
+    }
+    .comment-form input {
+      flex:1;
+    }
+    footer {
+      font-size:12px; color:var(--muted);
+      text-align:center; margin-top:auto;
+    }
   </style>
 </head>
 <body>
   <!-- PANEL LEWY -->
   <aside>
     <h1>🎬 VideoLinki</h1>
-
-    <!-- FORMULARZ DODAWANIA FILMU -->
     <form id="addForm">
       <input id="urlInput" type="url" placeholder="Link do filmu (YouTube/Vimeo/mp4)" required>
       <input id="titleInput" type="text" placeholder="Tytuł (opcjonalny)">
       <button type="submit">➕ Dodaj</button>
     </form>
-
-    <div>
-      <span id="countChip" class="chip">0 filmów</span>
-    </div>
+    <div><span id="countChip" class="chip">0 filmów</span></div>
     <button id="clearBtn" class="danger">🗑️ Wyczyść wszystko</button>
-
     <input id="searchInput" type="text" placeholder="🔍 Szukaj...">
-
-    <!-- LOGOWANIE -->
-    <form id="loginForm">
-      <input id="userId" type="text" placeholder="ID użytkownika" required>
-      <input id="userLogin" type="text" placeholder="Login" required>
-      <button type="submit">🔑 Zaloguj</button>
-    </form>
-    <div id="loginStatus" class="chip">Nie zalogowano</div>
-
     <footer>Zapis lokalny w przeglądarce</footer>
   </aside>
 
@@ -177,24 +202,18 @@
 
   <script>
     const $ = s => document.querySelector(s);
-
     const dbKey = 'videolinki.v2';
     const commentsKey = 'videolinki.comments.v1';
     let items = JSON.parse(localStorage.getItem(dbKey) || '[]');
     let comments = JSON.parse(localStorage.getItem(commentsKey) || '{}');
     let currentId = null;
-    let loggedIn = false;
-
-    const ADMIN_ID = "admin123";      // ustaw swoje ID
-    const ADMIN_LOGIN = "superuser";  // ustaw swój login
 
     function save(){ localStorage.setItem(dbKey, JSON.stringify(items)); }
     function saveComments(){ localStorage.setItem(commentsKey, JSON.stringify(comments)); }
     function fmtCount(n){ return n===1? "1 film" : (n<5? n+" filmy" : n+" filmów"); }
 
     function parseUrl(raw){
-      try{
-        const url = new URL(raw);
+      try{ const url = new URL(raw);
         if(url.hostname.includes('youtube')||url.hostname==='youtu.be'){
           let id=url.searchParams.get('v'); if(!id) id=url.pathname.split('/').pop();
           return {type:'yt',embed:`https://www.youtube.com/embed/${id}`,thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg`};
@@ -216,4 +235,67 @@
       for(const it of filtered){
         const card=document.createElement('div'); card.className='card';
         const thumb=document.createElement('div'); thumb.className='thumb';
-        if(it.thumb){ let img=new Image(); img.src=it.thumb; thumb.appendChild
+        if(it.thumb){ let img=new Image(); img.src=it.thumb; thumb.appendChild(img); }
+        const play=document.createElement('div'); play.className='play';
+        const btn=document.createElement('button'); play.appendChild(btn); thumb.appendChild(play);
+        const meta=document.createElement('div'); meta.className='meta';
+        meta.innerHTML=`<div class="title">${it.title}</div><div class="url">${it.url}</div>`;
+        card.appendChild(thumb); card.appendChild(meta); grid.appendChild(card);
+        btn.onclick=()=>openPlayer(it);
+      }
+    }
+
+    function renderComments(id){
+      const list=$('#commentsList');
+      list.innerHTML='';
+      const arr=comments[id]||[];
+      arr.forEach((c,i)=>{
+        const div=document.createElement('div');
+        div.className='comment';
+        div.innerHTML=`<strong>Anonimowy-${i+1}:</strong> ${c}`;
+        list.appendChild(div);
+      });
+    }
+
+    function openPlayer(it){
+      currentId=it.id;
+      $('#playerTitle').textContent=it.title;
+      $('#playerSub').textContent=it.url;
+      $('#playerBody').innerHTML='';
+      if(it.type==='yt'||it.type==='vimeo'||it.type==='iframe'){
+        const f=document.createElement('iframe'); f.src=it.embed; f.allowFullscreen=true; f.frameBorder=0;
+        $('#playerBody').appendChild(f);
+      } else if(it.type==='file'){
+        const v=document.createElement('video'); v.src=it.src; v.controls=true; v.play();
+        $('#playerBody').appendChild(v);
+      }
+      renderComments(it.id);
+      $('#player').showModal();
+    }
+
+    $('#closeBtn').onclick=()=>$('#player').close();
+    $('#addForm').onsubmit=e=>{
+      e.preventDefault();
+      const url=$('#urlInput').value.trim(); if(!url) return;
+      const parsed=parseUrl(url);
+      const rec={id:Math.random().toString(36).slice(2),url,title:$('#titleInput').value.trim()||url,...parsed};
+      items.unshift(rec); save(); render(); e.target.reset();
+    };
+    $('#clearBtn').onclick=()=>{ if(confirm('Na pewno usunąć wszystkie?')){ items=[]; save(); render(); } };
+    $('#searchInput').oninput=render;
+
+    $('#commentForm').onsubmit=e=>{
+      e.preventDefault();
+      if(!currentId) return;
+      const txt=$('#commentInput').value.trim(); if(!txt) return;
+      comments[currentId]=comments[currentId]||[];
+      comments[currentId].push(txt);
+      saveComments();
+      $('#commentInput').value='';
+      renderComments(currentId);
+    };
+
+    render();
+  </script>
+</body>
+</html>
