@@ -3,195 +3,281 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VideoLinki – Twoja mini-wideoteka</title>
+  <title>VideoLinki – Wideoteka</title>
   <style>
-    :root{
-      --bg:#0b0d10;--card:#141820;--muted:#9aa4b2;--text:#e6e9ee;--acc:#6ea8fe;--danger:#ff6464
+    :root {
+      --bg:#0b0d10;
+      --panel:#141820;
+      --card:#1a1f2b;
+      --muted:#9aa4b2;
+      --text:#e6e9ee;
+      --acc:#6ea8fe;
+      --danger:#ff6464;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;
-      background:linear-gradient(180deg,#0b0d10,#0f1320);color:var(--text)}
-    header{position:sticky;top:0;background:rgba(11,13,16,.75);backdrop-filter:saturate(150%) blur(8px);
-      border-bottom:1px solid #1f2633;z-index:5}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    h1{margin:0;font-size:20px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-    .card{background:var(--card);border:1px solid #1f2633;border-radius:16px;overflow:hidden;
-      box-shadow:0 6px 22px rgba(0,0,0,.25)}
-    .thumb{position:relative;aspect-ratio:16/9;background:#0c111b;display:grid;place-items:center}
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .thumb .badge{position:absolute;top:10px;left:10px;font-size:12px;background:#0b0d10dd;
-      border:1px solid #263145;color:#c7d2e0;padding:4px 8px;border-radius:999px}
-    .thumb .play{position:absolute;inset:0;display:grid;place-items:center}
-    .thumb .play button{width:56px;height:56px;border-radius:999px;border:1px solid #2c3750;
-      background:rgba(20,24,32,.65);cursor:pointer}
-    .thumb .play button:hover{outline:2px solid #2c6fff3a}
-    .meta{padding:12px 14px}
-    .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .url{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
-    .row{display:flex;gap:10px;align-items:center}
-    form{display:grid;grid-template-columns:1.5fr 1fr auto;gap:10px}
-    input[type="url"],input[type="text"]{width:100%;padding:12px 12px;border-radius:12px;
-      border:1px solid #223148;background:#0d1220;color:var(--text)}
-    input::placeholder{color:#6f7d92}
-    button.add{padding:12px 16px;border-radius:12px;border:1px solid #24418c;
-      background:linear-gradient(180deg,#1c3c8d,#142b63);color:#fff;font-weight:600;cursor:pointer}
-    button.add:hover{filter:brightness(1.08)}
-    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}
-    .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #263145;
-      color:#c7d2e0;background:#0b0d10}
-    .search{flex:1}
-    .search input{width:100%;padding:10px 12px;border-radius:999px;border:1px solid #263145;
-      background:#0b0d10;color:#c7d2e0}
-    dialog#player{width:96vw;max-width:1200px;border:none;border-radius:16px;padding:0;
-      overflow:hidden;background:#0b0d10;display:flex;flex-direction:column}
-    dialog::backdrop{background:rgba(3,6,15,.7)}
-    .player-head{display:flex;justify-content:space-between;align-items:center;
-      padding:10px 14px;border-bottom:1px solid #1f2633}
-    .player-body{flex:1;display:flex;justify-content:center;align-items:center;padding:0;background:#000}
-    .player-body iframe,.player-body video{width:100%;height:70vh;display:block;background:#000}
-    .comments{border-top:1px solid #1f2633;padding:12px;max-height:200px;overflow-y:auto}
-    .comment{color:#fff;margin:4px 0;padding:6px 10px;background:#1a1f2c;border-radius:8px}
-    .comment-form{display:flex;gap:8px;margin-top:8px}
-    .comment-form input{flex:1;padding:8px;border-radius:8px;border:1px solid #263145;background:#0d1220;color:#fff}
-    .comment-form button{padding:8px 12px;border-radius:8px;background:#24418c;color:#fff;border:none;cursor:pointer}
-    .danger{color:var(--danger);cursor:pointer}
-    .hidden{display:none}
-    .empty{opacity:.6;display:grid;place-items:center;padding:40px;border:1px dashed #263145;border-radius:16px}
-    footer{opacity:.7;font-size:12px;text-align:center;margin:40px 0}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body {
+      font-family:system-ui,Roboto,Arial,sans-serif;
+      background:linear-gradient(90deg,#0b0d10,#0f1320);
+      color:var(--text);
+      display:flex;
+      height:100vh;
+      overflow:hidden;
+    }
+    /* PANEL LEWY */
+    aside {
+      width:300px;
+      background:var(--panel);
+      border-right:1px solid #1f2633;
+      display:flex;
+      flex-direction:column;
+      padding:20px;
+      gap:16px;
+    }
+    aside h1 { font-size:18px; margin-bottom:10px; }
+    aside form { display:flex; flex-direction:column; gap:10px; }
+    input, textarea {
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #223148;
+      background:#0d1220;
+      color:var(--text);
+    }
+    input::placeholder, textarea::placeholder { color:#6f7d92; }
+    button {
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #24418c;
+      background:linear-gradient(180deg,#1c3c8d,#142b63);
+      color:#fff;
+      font-weight:600;
+      cursor:pointer;
+    }
+    button:hover { filter:brightness(1.1); }
+    .danger { border:1px solid #802828; background:linear-gradient(180deg,#a22,#711); }
+    .chip { font-size:13px; padding:6px 10px; border-radius:999px; border:1px solid #263145; background:#0b0d10; color:var(--muted); display:inline-block; }
+
+    /* GALERIA */
+    main {
+      flex:1;
+      overflow:auto;
+      padding:20px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:16px;
+    }
+    .card {
+      background:var(--card);
+      border:1px solid #1f2633;
+      border-radius:12px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .thumb {
+      position:relative;
+      aspect-ratio:16/9;
+      background:#0c111b;
+      display:grid;
+      place-items:center;
+    }
+    .thumb img { width:100%; height:100%; object-fit:cover; }
+    .thumb .play {
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+    }
+    .thumb .play button {
+      width:48px; height:48px;
+      border-radius:999px;
+      border:1px solid #2c3750;
+      background:rgba(20,24,32,.65);
+    }
+    .thumb .play button:hover { outline:2px solid #2c6fff3a; }
+    .meta { padding:10px; font-size:14px; }
+    .meta .title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .meta .url { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+
+    /* MODAL */
+    dialog {
+      width:min(960px,96vw);
+      border:none;
+      border-radius:12px;
+      padding:0;
+      overflow:hidden;
+      background:#0b0d10;
+    }
+    dialog::backdrop { background:rgba(3,6,15,.7); }
+    .player-head {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 12px;
+      border-bottom:1px solid #1f2633;
+    }
+    .player-body iframe, .player-body video {
+      width:100%; height:min(60vh,60vw);
+      display:block; background:#000;
+    }
+    .comments {
+      padding:12px;
+      border-top:1px solid #1f2633;
+      max-height:200px;
+      overflow-y:auto;
+    }
+    .comment { 
+      margin-bottom:8px;
+      color:#fff; /* białe komentarze */
+      padding:6px 8px;
+      background:#1a1f2c;
+      border-radius:6px;
+    }
+    .comment strong { color:var(--acc); margin-right:6px; }
+    .comment-form {
+      display:flex; gap:8px; padding:10px; border-top:1px solid #1f2633;
+    }
+    .comment-form input {
+      flex:1;
+    }
+    footer {
+      font-size:12px; color:var(--muted);
+      text-align:center; margin-top:auto;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="row" style="justify-content:space-between">
-        <h1>🎬 VideoLinki – dodaj link i oglądaj</h1>
-        <button id="exportBtn" class="chip">📤 Eksport</button>
-      </div>
-      <form id="addForm" autocomplete="off" style="margin-top:12px">
-        <input id="urlInput" type="url" placeholder="Wklej link (YouTube, Vimeo, .mp4/.webm)…" required />
-        <input id="titleInput" type="text" placeholder="Tytuł (opcjonalnie)" />
-        <button class="add" type="submit">➕ Dodaj</button>
-      </form>
-    </div>
-  </header>
+  <!-- PANEL LEWY -->
+  <aside>
+    <h1>🎬 VideoLinki</h1>
+    <form id="addForm">
+      <input id="urlInput" type="url" placeholder="Link do filmu (YouTube/Vimeo/mp4)" required>
+      <input id="titleInput" type="text" placeholder="Tytuł (opcjonalny)">
+      <button type="submit">➕ Dodaj</button>
+    </form>
+    <div><span id="countChip" class="chip">0 filmów</span></div>
+    <button id="clearBtn" class="danger">🗑️ Wyczyść wszystko</button>
+    <input id="searchInput" type="text" placeholder="🔍 Szukaj...">
+    <footer>Zapis lokalny w przeglądarce</footer>
+  </aside>
 
-  <main class="wrap" style="margin-top:14px">
-    <div id="emptyState" class="empty">Brak filmów. Dodaj pierwszy link powyżej. ✨</div>
+  <!-- GALERIA -->
+  <main>
     <div id="grid" class="grid"></div>
   </main>
 
+  <!-- ODTWARZACZ -->
   <dialog id="player">
     <div class="player-head">
       <div>
         <div id="playerTitle" style="font-weight:600"></div>
         <div id="playerSub" style="font-size:12px;opacity:.7"></div>
       </div>
-      <div class="row">
-        <button id="deleteBtn" class="chip danger">🗑️ Usuń</button>
-        <button id="closeBtn" class="chip">✖️ Zamknij</button>
-      </div>
+      <button id="closeBtn" class="chip">✖ Zamknij</button>
     </div>
     <div class="player-body" id="playerBody"></div>
+
+    <!-- KOMENTARZE -->
     <div class="comments" id="commentsList"></div>
     <form class="comment-form" id="commentForm">
-      <input type="text" id="commentInput" placeholder="Dodaj komentarz…" />
-      <button type="submit">➤</button>
+      <input id="commentInput" type="text" placeholder="Dodaj komentarz..." required>
+      <button type="submit">💬</button>
     </form>
   </dialog>
 
-  <footer>Zapis działa lokalnie w przeglądarce (localStorage).</footer>
-
   <script>
-    const dbKey='videolinki.items.v1'
-    const $=s=>document.querySelector(s)
-    let items=JSON.parse(localStorage.getItem(dbKey)||'[]')
-    let currentId=null
-    let anonCounter=1
+    const $ = s => document.querySelector(s);
+    const dbKey = 'videolinki.v2';
+    const commentsKey = 'videolinki.comments.v1';
+    let items = JSON.parse(localStorage.getItem(dbKey) || '[]');
+    let comments = JSON.parse(localStorage.getItem(commentsKey) || '{}');
+    let currentId = null;
 
-    function save(){localStorage.setItem(dbKey,JSON.stringify(items))}
-    function createId(){return Math.random().toString(36).slice(2)}
+    function save(){ localStorage.setItem(dbKey, JSON.stringify(items)); }
+    function saveComments(){ localStorage.setItem(commentsKey, JSON.stringify(comments)); }
+    function fmtCount(n){ return n===1? "1 film" : (n<5? n+" filmy" : n+" filmów"); }
+
     function parseUrl(raw){
-      try{
-        const u=new URL(raw);const h=u.hostname.replace('www.','')
-        if(h.includes('youtube.com')||h==='youtu.be'){
-          let id=u.searchParams.get('v')
-          if(!id&&h==='youtu.be')id=u.pathname.slice(1)
-          if(!id&&u.pathname.startsWith('/shorts/'))id=u.pathname.split('/')[2]
-          if(id)return{type:'youtube',embed:`https://www.youtube.com/embed/${id}`,thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+      try{ const url = new URL(raw);
+        if(url.hostname.includes('youtube')||url.hostname==='youtu.be'){
+          let id=url.searchParams.get('v'); if(!id) id=url.pathname.split('/').pop();
+          return {type:'yt',embed:`https://www.youtube.com/embed/${id}`,thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg`};
         }
-        if(h.includes('vimeo.com')){
-          const id=u.pathname.split('/').filter(Boolean).find(p=>/^\d+$/.test(p))
-          if(id)return{type:'vimeo',embed:`https://player.vimeo.com/video/${id}`}
+        if(url.hostname.includes('vimeo')){
+          let id=url.pathname.split('/').filter(Boolean).pop();
+          return {type:'vimeo',embed:`https://player.vimeo.com/video/${id}`};
         }
-        if(/[.](mp4|webm|ogg)(?:$|\?)/i.test(u.pathname))
-          return{type:'file',src:u.toString()}
-        return{type:'iframe',embed:u.toString()}
-      }catch{return{type:'unknown'}}
+        if(/\.(mp4|webm|ogg)$/i.test(url.pathname)){ return {type:'file',src:url.toString()}; }
+        return {type:'iframe',embed:url.toString()};
+      }catch{ return {type:'unknown'}; }
     }
 
     function render(){
-      const grid=$('#grid');grid.innerHTML=''
-      if(!items.length)$('#emptyState').classList.remove('hidden')
-      else $('#emptyState').classList.add('hidden')
-      items.forEach(it=>{
-        const card=document.createElement('article');card.className='card'
-        card.innerHTML=`<div class="thumb">
-          <span class="badge">${it.kind}</span>
-          ${it.thumb?`<img src="${it.thumb}">`:'<div class="ghost">Brak miniatury</div>'}
-          <div class="play"><button title="Odtwórz"></button></div>
-        </div>
-        <div class="meta"><div class="title">${it.title}</div>
-        <div class="url">${it.url}</div></div>`
-        card.querySelector('button').onclick=()=>openPlayer(it.id)
-        grid.appendChild(card)
-      })
-    }
-
-    function openPlayer(id){
-      const it=items.find(x=>x.id===id);if(!it)return
-      currentId=id
-      $('#playerTitle').textContent=it.title
-      $('#playerSub').textContent=it.url
-      const body=$('#playerBody');body.innerHTML=''
-      if(it.kind==='YOUTUBE'||it.kind==='VIMEO'||it.kind==='IFRAME'){
-        const f=document.createElement('iframe');f.src=it.embed
-        f.allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
-        f.allowFullscreen=true;f.frameBorder="0";body.appendChild(f)
-      }else if(it.kind==='FILE'){
-        const v=document.createElement('video');v.src=it.src;v.controls=true;v.autoplay=true
-        body.appendChild(v)
+      const grid=$('#grid'); grid.innerHTML='';
+      const q=$('#searchInput').value.toLowerCase();
+      const filtered=items.filter(i=>i.title.toLowerCase().includes(q)||i.url.toLowerCase().includes(q));
+      $('#countChip').textContent=fmtCount(filtered.length);
+      for(const it of filtered){
+        const card=document.createElement('div'); card.className='card';
+        const thumb=document.createElement('div'); thumb.className='thumb';
+        if(it.thumb){ let img=new Image(); img.src=it.thumb; thumb.appendChild(img); }
+        const play=document.createElement('div'); play.className='play';
+        const btn=document.createElement('button'); play.appendChild(btn); thumb.appendChild(play);
+        const meta=document.createElement('div'); meta.className='meta';
+        meta.innerHTML=`<div class="title">${it.title}</div><div class="url">${it.url}</div>`;
+        card.appendChild(thumb); card.appendChild(meta); grid.appendChild(card);
+        btn.onclick=()=>openPlayer(it);
       }
-      // render comments
-      const cl=$('#commentsList');cl.innerHTML=''
-      it.comments?.forEach(c=>{
-        const div=document.createElement('div');div.className='comment'
-        div.textContent=c;cl.appendChild(div)
-      })
-      $('#player').showModal()
     }
 
+    function renderComments(id){
+      const list=$('#commentsList');
+      list.innerHTML='';
+      const arr=comments[id]||[];
+      arr.forEach((c,i)=>{
+        const div=document.createElement('div');
+        div.className='comment';
+        div.innerHTML=`<strong>Anonimowy-${i+1}:</strong> ${c}`;
+        list.appendChild(div);
+      });
+    }
+
+    function openPlayer(it){
+      currentId=it.id;
+      $('#playerTitle').textContent=it.title;
+      $('#playerSub').textContent=it.url;
+      $('#playerBody').innerHTML='';
+      if(it.type==='yt'||it.type==='vimeo'||it.type==='iframe'){
+        const f=document.createElement('iframe'); f.src=it.embed; f.allowFullscreen=true; f.frameBorder=0;
+        $('#playerBody').appendChild(f);
+      } else if(it.type==='file'){
+        const v=document.createElement('video'); v.src=it.src; v.controls=true; v.play();
+        $('#playerBody').appendChild(v);
+      }
+      renderComments(it.id);
+      $('#player').showModal();
+    }
+
+    $('#closeBtn').onclick=()=>$('#player').close();
     $('#addForm').onsubmit=e=>{
-      e.preventDefault()
-      const url=$('#urlInput').value.trim(),title=$('#titleInput').value.trim()||url
-      const p=parseUrl(url)
-      const rec={id:createId(),url,title,comments:[],kind:p.type.toUpperCase()}
-      if(p.embed)rec.embed=p.embed;if(p.thumb)rec.thumb=p.thumb;if(p.src)rec.src=p.src
-      items.unshift(rec);save();render();e.target.reset()
-    }
-    $('#closeBtn').onclick=()=>$('#player').close()
-    $('#deleteBtn').onclick=()=>{
-      if(currentId){items=items.filter(x=>x.id!==currentId);save();render();$('#player').close()}
-    }
+      e.preventDefault();
+      const url=$('#urlInput').value.trim(); if(!url) return;
+      const parsed=parseUrl(url);
+      const rec={id:Math.random().toString(36).slice(2),url,title:$('#titleInput').value.trim()||url,...parsed};
+      items.unshift(rec); save(); render(); e.target.reset();
+    };
+    $('#clearBtn').onclick=()=>{ if(confirm('Na pewno usunąć wszystkie?')){ items=[]; save(); render(); } };
+    $('#searchInput').oninput=render;
+
     $('#commentForm').onsubmit=e=>{
-      e.preventDefault()
-      const txt=$('#commentInput').value.trim();if(!txt)return
-      const it=items.find(x=>x.id===currentId);if(!it)return
-      const name=`Anonimowy-${anonCounter++}`
-      it.comments.push(`${name}: ${txt}`);save()
-      $('#commentInput').value='';openPlayer(currentId)
-    }
-    render()
+      e.preventDefault();
+      if(!currentId) return;
+      const txt=$('#commentInput').value.trim(); if(!txt) return;
+      comments[currentId]=comments[currentId]||[];
+      comments[currentId].push(txt);
+      saveComments();
+      $('#commentInput').value='';
+      renderComments(currentId);
+    };
+
+    render();
   </script>
 </body>
 </html>
