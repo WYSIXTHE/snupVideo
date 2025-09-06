@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// FUNKCJA DODAWANIA FILMU
+// DODAWANIE FILMU
 function addVideo() {
   const title = document.getElementById('title').value.trim();
   const url = document.getElementById('url').value.trim();
@@ -30,7 +30,7 @@ function addVideo() {
     comments,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    alert('Film został dodany pomyślnie!');
+    alert('Film dodany pomyślnie!');
     document.getElementById('title').value = '';
     document.getElementById('url').value = '';
     document.getElementById('description').value = '';
@@ -38,7 +38,7 @@ function addVideo() {
   }).catch(err => alert(err.message));
 }
 
-// FUNKCJA GENERUJĄCA EMBED VIDEO
+// GENEROWANIE EMBED VIDEO
 function generateVideoEmbed(url) {
   try {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -88,5 +88,5 @@ function deleteVideo(id) {
   }
 }
 
-// Inicjalizacja listy filmów
+// Inicjalizacja
 loadVideos();
