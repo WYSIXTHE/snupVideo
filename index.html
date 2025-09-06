@@ -1,58 +1,144 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VideoLinki – Twoja mini‑wideoteka</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>VideoLinki z Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+    button { padding: 8px 12px; margin: 5px 0; }
+    .video { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="row" style="justify-content:space-between">
-        <h1>🎬 VideoLinki – dodaj link i oglądaj</h1>
-        <button id="exportBtn" class="chip" title="Eksport listy jako JSON">📤 Eksport</button>
-      </div>
-      <div style="margin-top:12px"></div>
-      <form id="addForm" autocomplete="off">
-        <input id="urlInput" type="url" placeholder="Wklej link do filmu (YouTube, Vimeo, .mp4/.webm)…" required />
-        <input id="titleInput" type="text" placeholder="Tytuł (opcjonalnie)" />
-        <button class="add" type="submit">➕ Dodaj</button>
-      </form>
-      <div class="toolbar">
-        <div class="left">
-          <span class="chip" id="countChip">0 filmów</span>
-          <button id="importBtn" class="chip" title="Importuj z JSON">📥 Import</button>
-          <button id="clearBtn" class="chip danger" title="Wyczyść wszystko">🗑️ Wyczyść</button>
-        </div>
-        <div class="search"><input id="searchInput" type="text" placeholder="Szukaj w tytułach i URL…"/></div>
-      </div>
-    </div>
-  </header>
+  <h1>VideoLinki</h1>
 
-  <main class="wrap" style="margin-top:14px">
-    <div id="emptyState" class="empty">Brak filmów. Dodaj pierwszy link powyżej. ✨</div>
-    <div id="grid" class="grid"></div>
-  </main>
+  <div id="loginDiv">
+    <h2>Logowanie / Rejestracja</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Hasło">
+    <button onclick="login()">Zaloguj się</button>
+    <button onclick="register()">Zarejestruj się</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
 
-  <dialog id="player">
-    <div class="player-head">
-      <div>
-        <div id="playerTitle" style="font-weight:600"></div>
-        <div id="playerSub" class="ghost" style="font-size:12px"></div>
-      </div>
-      <div class="row">
-        <button id="deleteBtn" class="chip danger" title="Usuń z listy">🗑️ Usuń</button>
-        <button id="closeBtn" class="chip" title="Zamknij">✖️ Zamknij</button>
-      </div>
-    </div>
-    <div class="player-body" id="playerBody"></div>
-  </dialog>
+  <div id="appDiv" class="hidden">
+    <button onclick="logout()">Wyloguj się</button>
+    <h2>Dodaj film</h2>
+    <input id="title" placeholder="Tytuł filmu">
+    <input id="url" placeholder="Link do filmu">
+    <textarea id="description" placeholder="Opis filmu"></textarea>
+    <textarea id="comments" placeholder="Komentarze (oddzielone enterem)"></textarea>
+    <button onclick="addVideo()">Dodaj film</button>
 
-  <footer>
-    Zapis działa lokalnie w przeglądarce (localStorage). Strona nie wysyła nic na serwer.
-  </footer>
+    <h2>Lista Twoich filmów</h2>
+    <div id="videoList"></div>
+  </div>
 
-  <script src="script.js"></script>
+  <script>
+    // TODO: podmień konfigurację na swoją z Firebase
+    const firebaseConfig = {
+      apiKey: "1:346817626388:web:4392536d75afabad728201",
+      authDomain: "gvideo-e3622.firebaseapp.com",
+      projectId: "gvideo-e3622",
+      storageBucket: "gvideo-e3622.appspot.com",
+      messagingSenderId: "346817626388",
+      appId: "1:346817626388:web:4392536d75afabad728201"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const loginDiv = document.getElementById('loginDiv');
+    const appDiv = document.getElementById('appDiv');
+
+    // Logowanie
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(err => document.getElementById('loginError').textContent = err.message);
+    }
+
+    // Rejestracja
+    function register() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .catch(err => document.getElementById('loginError').textContent = err.message);
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loginDiv.classList.add('hidden');
+        appDiv.classList.remove('hidden');
+        loadVideos();
+      } else {
+        loginDiv.classList.remove('hidden');
+        appDiv.classList.add('hidden');
+        document.getElementById('videoList').innerHTML = '';
+      }
+    });
+
+    // Dodawanie filmu
+    function addVideo() {
+      const title = document.getElementById('title').value.trim();
+      const url = document.getElementById('url').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const comments = document.getElementById('comments').value.trim().split('\n').filter(c => c);
+
+      if (!title || !url) { alert('Wypełnij tytuł i link!'); return; }
+
+      db.collection('videos').add({
+        title,
+        url,
+        description,
+        comments,
+        userId: auth.currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        document.getElementById('title').value = '';
+        document.getElementById('url').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('comments').value = '';
+      });
+    }
+
+    // Wyświetlanie listy
+    function loadVideos() {
+      const userId = auth.currentUser.uid;
+      db.collection('videos')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .onSnapshot(snapshot => {
+          const list = document.getElementById('videoList');
+          list.innerHTML = '';
+          if (snapshot.empty) {
+            list.innerHTML = '<p>Nie masz jeszcze żadnych filmów.</p>';
+            return;
+          }
+          snapshot.forEach(doc => {
+            const v = doc.data();
+            const div = document.createElement('div');
+            div.className = 'video';
+            div.innerHTML = `
+              <strong>${v.title}</strong> - <a href="${v.url}" target="_blank">Oglądaj</a><br>
+              <em>${v.description}</em><br>
+              <strong>Komentarze:</strong><br>${v.comments.map(c => '- ' + c).join('<br>')}
+            `;
+            list.appendChild(div);
+          });
+        });
+    }
+  </script>
 </body>
 </html>
