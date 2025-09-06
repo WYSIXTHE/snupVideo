@@ -2,208 +2,30 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>VideoLinki z Firebase</title>
+  <title>VideoLinki</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
-    input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
-    button { padding: 8px 12px; margin: 5px 5px 5px 0; }
-    .video { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    .hidden { display: none; }
-    iframe { max-width: 100%; height: 200px; }
-    ul { padding-left: 20px; }
-  </style>
 </head>
 <body>
-  <h1>VideoLinki</h1>
+  <div class="container">
+    <h1>VideoLinki</h1>
 
-  <!-- LOGOWANIE -->
-  <div id="loginDiv">
-    <h2>Logowanie / Rejestracja</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Hasło">
-    <button id="loginBtn">Zaloguj się</button>
-    <button id="registerBtn">Zarejestruj się</button>
-    <p id="loginError" style="color:red;"></p>
+    <div class="add-video">
+      <h2>Dodaj nowy film</h2>
+      <input id="title" placeholder="Tytuł filmu">
+      <input id="url" placeholder="Link do filmu (YouTube/Vimeo/plik)">
+      <textarea id="description" placeholder="Opis filmu"></textarea>
+      <textarea id="comments" placeholder="Komentarze (oddzielone enterem)"></textarea>
+      <button onclick="addVideo()">Dodaj film</button>
+    </div>
+
+    <div class="video-list">
+      <h2>Lista filmów</h2>
+      <div id="videoList"></div>
+    </div>
   </div>
 
-  <!-- APLIKACJA -->
-  <div id="appDiv" class="hidden">
-    <button onclick="logout()">Wyloguj się</button>
-
-    <h2>Dodaj film</h2>
-    <input id="title" placeholder="Tytuł filmu">
-    <input id="url" placeholder="Link do filmu (YouTube/Vimeo/plik)">
-    <textarea id="description" placeholder="Opis filmu"></textarea>
-    <textarea id="comments" placeholder="Komentarze (oddzielone enterem)"></textarea>
-    <button onclick="addVideo()">Dodaj film</button>
-
-    <h2>Lista Twoich filmów</h2>
-    <div id="videoList"></div>
-  </div>
-
-  <script>
-    // KONFIGURACJA FIREBASE
-    const firebaseConfig = {
-      apiKey: "1:346817626388:web:4392536d75afabad728201",
-      authDomain: "gvideo-e3622.firebaseapp.com",
-      projectId: "gvideo-e3622",
-      storageBucket: "gvideo-e3622.appspot.com",
-      messagingSenderId: "346817626388",
-      appId: "1:346817626388:web:4392536d75afabad728201"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    const loginDiv = document.getElementById('loginDiv');
-    const appDiv = document.getElementById('appDiv');
-    const loginError = document.getElementById('loginError');
-
-    // OBSŁUGA PRZYCISKÓW
-    document.getElementById('loginBtn').addEventListener('click', login);
-    document.getElementById('registerBtn').addEventListener('click', register);
-
-    function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      loginError.style.color = 'red';
-      loginError.textContent = '';
-
-      if (!email || !password) {
-        loginError.textContent = 'Wpisz email i hasło!';
-        return;
-      }
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          loginError.textContent = '';
-        })
-        .catch(err => {
-          loginError.textContent = 'Błąd logowania: ' + err.message;
-        });
-    }
-
-    function register() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      loginError.textContent = '';
-
-      if (!email || !password) {
-        loginError.style.color = 'red';
-        loginError.textContent = 'Wpisz email i hasło!';
-        return;
-      }
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          loginError.style.color = 'green';
-          loginError.textContent = 'Konto utworzone pomyślnie! Możesz się teraz zalogować.';
-          document.getElementById('email').value = '';
-          document.getElementById('password').value = '';
-        })
-        .catch(err => {
-          loginError.style.color = 'red';
-          loginError.textContent = 'Błąd przy rejestracji: ' + err.message;
-        });
-    }
-
-    function logout() {
-      auth.signOut();
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        loginDiv.classList.add('hidden');
-        appDiv.classList.remove('hidden');
-        loadVideos();
-      } else {
-        loginDiv.classList.remove('hidden');
-        appDiv.classList.add('hidden');
-        document.getElementById('videoList').innerHTML = '';
-      }
-    });
-
-    // DODAWANIE FILMU
-    function addVideo() {
-      const title = document.getElementById('title').value.trim();
-      const url = document.getElementById('url').value.trim();
-      const description = document.getElementById('description').value.trim();
-      const comments = document.getElementById('comments').value.trim().split('\n').filter(c => c);
-
-      if (!title || !url) { alert('Wypełnij tytuł i link!'); return; }
-
-      db.collection('videos').add({
-        title,
-        url,
-        description,
-        comments,
-        userId: auth.currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        document.getElementById('title').value = '';
-        document.getElementById('url').value = '';
-        document.getElementById('description').value = '';
-        document.getElementById('comments').value = '';
-      }).catch(err => alert(err.message));
-    }
-
-    // GENEROWANIE MINIATUR / VIDEO
-    function generateVideoEmbed(url) {
-      try {
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-          let videoId;
-          if (url.includes('youtu.be')) videoId = url.split('/').pop();
-          else videoId = new URL(url).searchParams.get('v');
-          return `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-        } else if (url.includes('vimeo.com')) {
-          const videoId = url.split('/').pop();
-          return `<iframe src="https://player.vimeo.com/video/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-        } else {
-          return `<video controls src="${url}"></video>`;
-        }
-      } catch(e) {
-        return `<a href="${url}" target="_blank">Otwórz film</a>`;
-      }
-    }
-
-    // ŁADOWANIE FILMÓW
-    function loadVideos() {
-      const userId = auth.currentUser.uid;
-      db.collection('videos')
-        .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
-        .onSnapshot(snapshot => {
-          const list = document.getElementById('videoList');
-          list.innerHTML = '';
-          if (snapshot.empty) {
-            list.innerHTML = '<p>Nie masz jeszcze żadnych filmów.</p>';
-            return;
-          }
-          snapshot.forEach(doc => {
-            const v = doc.data();
-            const div = document.createElement('div');
-            div.className = 'video';
-            div.innerHTML = `
-              <strong>${v.title}</strong>
-              <button onclick="deleteVideo('${doc.id}')">Usuń</button>
-              <div>${generateVideoEmbed(v.url)}</div>
-              <em>${v.description}</em>
-              <strong>Komentarze:</strong>
-              <ul>${v.comments.map(c => `<li>${c}</li>`).join('')}</ul>
-            `;
-            list.appendChild(div);
-          });
-        });
-    }
-
-    function deleteVideo(id) {
-      if(confirm('Na pewno chcesz usunąć ten film?')) {
-        db.collection('videos').doc(id).delete().catch(err => alert(err.message));
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
