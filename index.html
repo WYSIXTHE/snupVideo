@@ -66,6 +66,7 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const errorElem = document.getElementById('loginError');
+      errorElem.style.color = 'red';
       errorElem.textContent = '';
 
       if (!email || !password) {
@@ -74,8 +75,7 @@
       }
 
       auth.signInWithEmailAndPassword(email, password)
-        .then(() => { errorElem.textContent = ''; })
-        .catch(() => { errorElem.textContent = 'Niepoprawne logowanie lub hasło.'; });
+        .catch(err => errorElem.textContent = 'Błąd logowania: ' + err.message);
     }
 
     // REJESTRACJA
@@ -86,21 +86,28 @@
       errorElem.textContent = '';
 
       if (!email || !password) {
+        errorElem.style.color = 'red';
         errorElem.textContent = 'Wpisz email i hasło!';
         return;
       }
 
       auth.createUserWithEmailAndPassword(email, password)
-        .then(() => { errorElem.textContent = 'Konto utworzone pomyślnie! Możesz się zalogować.'; })
-        .catch(() => { errorElem.textContent = 'Błąd przy rejestracji: email już istnieje lub hasło za krótkie.'; });
+        .then(() => {
+          errorElem.style.color = 'green';
+          errorElem.textContent = 'Konto utworzone pomyślnie! Możesz się teraz zalogować.';
+          document.getElementById('email').value = '';
+          document.getElementById('password').value = '';
+        })
+        .catch(err => {
+          errorElem.style.color = 'red';
+          errorElem.textContent = 'Błąd przy rejestracji: ' + err.message;
+        });
     }
 
-    // WYLOGOWANIE
     function logout() {
       auth.signOut();
     }
 
-    // OBSŁUGA STANU ZALOGOWANIA
     auth.onAuthStateChanged(user => {
       if (user) {
         loginDiv.classList.add('hidden');
@@ -113,7 +120,7 @@
       }
     });
 
-    // DODAWANIE FILMU
+    // FUNKCJA DODAWANIA FILMU
     function addVideo() {
       const title = document.getElementById('title').value.trim();
       const url = document.getElementById('url').value.trim();
@@ -137,7 +144,7 @@
       }).catch(err => alert(err.message));
     }
 
-    // GENEROWANIE MINIATURKI / VIDEO
+    // FUNKCJA GENERUJĄCA MINIATURKĘ / VIDEO
     function generateVideoEmbed(url) {
       try {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
