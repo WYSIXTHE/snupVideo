@@ -1,31 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>VideoLinki - Nowoczesny Dark Mode</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VideoLinki – Twoja mini‑wideoteka</title>
+  <style>
+    :root{--bg:#0b0d10;--card:#141820;--muted:#9aa4b2;--text:#e6e9ee;--acc:#6ea8fe;--danger:#ff6464}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:linear-gradient(180deg,#0b0d10,#0f1320);color:var(--text)}
+    header{position:sticky;top:0;background:rgba(11,13,16,.75);backdrop-filter:saturate(150%) blur(8px);border-bottom:1px solid #1f2633;z-index:5}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+    .card{background:var(--card);border:1px solid #1f2633;border-radius:16px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.25)}
+    .thumb{position:relative;aspect-ratio:16/9;background:#0c111b;display:grid;place-items:center}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .thumb .badge{position:absolute;top:10px;left:10px;font-size:12px;background:#0b0d10dd;border:1px solid #263145;color:#c7d2e0;padding:4px 8px;border-radius:999px}
+    .thumb .play{position:absolute;inset:0;display:grid;place-items:center}
+    .thumb .play button{width:56px;height:56px;border-radius:999px;border:1px solid #2c3750;background:rgba(20,24,32,.65);cursor:pointer}
+    .thumb .play button:hover{outline:2px solid #2c6fff3a}
+    .meta{padding:12px 14px}
+    .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .url{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+    .row{display:flex;gap:10px;align-items:center}
+    form{display:grid;grid-template-columns:1.5fr 1fr auto;gap:10px}
+    input[type="url"],input[type="text"]{width:100%;padding:12px 12px;border-radius:12px;border:1px solid #223148;background:#0d1220;color:var(--text)}
+    input::placeholder{color:#6f7d92}
+    button.add{padding:12px 16px;border-radius:12px;border:1px solid #24418c;background:linear-gradient(180deg,#1c3c8d,#142b63);color:#fff;font-weight:600;cursor:pointer}
+    button.add:hover{filter:brightness(1.08)}
+    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}
+    .toolbar .left{display:flex;gap:10px;align-items:center}
+    .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #263145;color:#c7d2e0;background:#0b0d10;cursor:pointer}
+    .search{flex:1}
+    .search input{width:100%;padding:10px 12px;border-radius:999px;border:1px solid #263145;background:#0b0d10;color:#c7d2e0}
+    /* Modal */
+    dialog#player{width:min(960px,96vw);border:none;border-radius:16px;padding:0;overflow:hidden;background:#0b0d10}
+    dialog::backdrop{background:rgba(3,6,15,.7)}
+    .player-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #1f2633}
+    .player-body{padding:0}
+    .player-body iframe,.player-body video{width:100%;height:min(70vh,62vw);display:block;background:#000}
+    .ghost{opacity:.7}
+    .danger{color:var(--danger);cursor:pointer}
+    .hidden{display:none}
+    .empty{opacity:.6;display:grid;place-items:center;padding:40px;border:1px dashed #263145;border-radius:16px}
+    footer{opacity:.7;font-size:12px;text-align:center;margin:40px 0}
+  </style>
 </head>
 <body>
-  <div class="dashboard">
-    <!-- LEWY PANEL - FORMULARZ -->
-    <aside class="sidebar">
-      <h2>Dodaj Film</h2>
-      <input id="title" placeholder="Tytuł filmu">
-      <input id="url" placeholder="Link do filmu (YouTube/Vimeo/plik)">
-      <textarea id="description" placeholder="Opis filmu"></textarea>
-      <textarea id="comments" placeholder="Komentarze (oddzielone enterem)"></textarea>
-      <button onclick="addVideo()">Dodaj film</button>
-    </aside>
+  <header>
+    <div class="wrap">
+      <div class="row" style="justify-content:space-between">
+        <h1>🎬 VideoLinki – dodaj link i oglądaj</h1>
+        <button id="exportBtn" class="chip" title="Eksport listy jako JSON">📤 Eksport</button>
+      </div>
+      <div style="margin-top:12px"></div>
+      <form id="addForm" autocomplete="off">
+        <input id="urlInput" type="url" placeholder="Wklej link do filmu (YouTube, Vimeo, .mp4/.webm)…" required />
+        <input id="titleInput" type="text" placeholder="Tytuł (opcjonalnie)" />
+        <button class="add" type="submit">➕ Dodaj</button>
+      </form>
+      <div class="toolbar">
+        <div class="left">
+          <span class="chip" id="countChip">0 filmów</span>
+          <button id="importBtn" class="chip" title="Importuj z JSON">📥 Import</button>
+          <button id="clearBtn" class="chip danger" title="Wyczyść wszystko">🗑️ Wyczyść</button>
+        </div>
+        <div class="search"><input id="searchInput" type="text" placeholder="Szukaj w tytułach i URL…"/></div>
+      </div>
+    </div>
+  </header>
 
-    <!-- PRAWA STRONA - LISTA FILMÓW -->
-    <main class="main-content">
-      <h2>Lista Filmów</h2>
-      <div id="videoList"></div>
-    </main>
-  </div>
+  <main class="wrap" style="margin-top:14px">
+    <div id="emptyState" class="empty">Brak filmów. Dodaj pierwszy link powyżej. ✨</div>
+    <div id="grid" class="grid"></div>
+  </main>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <dialog id="player">
+    <div class="player-head">
+      <div>
+        <div id="playerTitle" style="font-weight:600"></div>
+        <div id="playerSub" class="ghost" style="font-size:12px"></div>
+      </div>
+      <div class="row">
+        <button id="deleteBtn" class="chip danger" title="Usuń z listy">🗑️ Usuń</button>
+        <button id="closeBtn" class="chip" title="Zamknij">✖️ Zamknij</button>
+      </div>
+    </div>
+    <div class="player-body" id="playerBody"></div>
+  </dialog>
+
+  <footer>
+    Zapis działa lokalnie w przeglądarce (localStorage). Strona nie wysyła nic na serwer.
+  </footer>
+
+  <script>
+    const $ = sel => document.querySelector(sel)
+    const dbKey = 'videolinki.items.v1'
+
+    function loadItems(){
+      try{ return JSON.parse(localStorage.getItem(dbKey)) || [] }catch{ return [] }
+    }
+    function saveItems(items){ localStorage.setItem(dbKey, JSON.stringify(items)) }
+    function fmtCount(n){
+      const forms = ['film','filmy','filmów']
+      const f = (n%10===1 && n%100!==11)?0:([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)?1:2)
+      return `${n} ${forms[f]}`
+    }
+    function parseUrl(raw){
+      let url
+      try{ url = new URL(raw) }catch{ return {type:'unknown', raw} }
+      const host = url.hostname.replace('www.','')
+      if(host.includes('youtube.com') || host==='youtu.be'){
+        let id = url.searchParams.get('v')
+        if(!id && host==='youtu.be') id = url.pathname.slice(1)
+        if(!id && url.pathname.startsWith('/shorts/')) id = url.pathname.split('/')[2]
+        if(id) return { type:'youtube', embed:`https://www.youtube.com/embed/${id}`, thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg` }
+      }
+      if(host.includes('vimeo.com')){
+        const parts = url.pathname.split('/').filter(Boolean)
+        const id = parts.find(p => /^\d+$/.test(p))
+        if(id) return { type:'vimeo', embed:`https://player.vimeo.com/video/${id}`, thumb:null }
+      }
+      if(/[.](mp4|webm|ogg)(?:$|\?)/i.test(url.pathname)) return {type:'file', src:url.toString(), thumb:null}
+      return {type:'iframe', embed:url.toString(), thumb:null}
+    }
+    function createId(){ return Math.random().toString(36).slice(2) }
+
+    let items = loadItems()
+    let currentId = null
+
+    const grid = $('#grid')
+    const emptyState = $('#emptyState')
+    const countChip = $('#countChip')
+
+    function render(){
+      grid.innerHTML = ''
+      const q = $('#searchInput').value.trim().toLowerCase()
+      const filtered = items.filter(it => it.title.toLowerCase().includes(q) || it.url.toLowerCase().includes(q))
+      countChip.textContent = fmtCount(filtered.length)
+      emptyState.classList.toggle('hidden', filtered.length>0)
+      for(const it of filtered){
+        const card = document.createElement('article')
+        card.className = 'card'
+
+        const thumb = document.createElement('div')
+        thumb.className = 'thumb'
+        const badge = document.createElement('span')
+        badge.className = 'badge'
+       
