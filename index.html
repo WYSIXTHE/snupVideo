@@ -24,8 +24,8 @@
     <h2>Logowanie / Rejestracja</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Hasło">
-    <button onclick="login()">Zaloguj się</button>
-    <button onclick="register()">Zarejestruj się</button>
+    <button id="loginBtn">Zaloguj się</button>
+    <button id="registerBtn">Zarejestruj się</button>
     <p id="loginError" style="color:red;"></p>
   </div>
 
@@ -60,47 +60,53 @@
 
     const loginDiv = document.getElementById('loginDiv');
     const appDiv = document.getElementById('appDiv');
+    const loginError = document.getElementById('loginError');
 
-    // LOGOWANIE
+    // OBSŁUGA PRZYCISKÓW
+    document.getElementById('loginBtn').addEventListener('click', login);
+    document.getElementById('registerBtn').addEventListener('click', register);
+
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      const errorElem = document.getElementById('loginError');
-      errorElem.style.color = 'red';
-      errorElem.textContent = '';
+      loginError.style.color = 'red';
+      loginError.textContent = '';
 
       if (!email || !password) {
-        errorElem.textContent = 'Wpisz email i hasło!';
+        loginError.textContent = 'Wpisz email i hasło!';
         return;
       }
 
       auth.signInWithEmailAndPassword(email, password)
-        .catch(err => errorElem.textContent = 'Błąd logowania: ' + err.message);
+        .then(() => {
+          loginError.textContent = '';
+        })
+        .catch(err => {
+          loginError.textContent = 'Błąd logowania: ' + err.message;
+        });
     }
 
-    // REJESTRACJA
     function register() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      const errorElem = document.getElementById('loginError');
-      errorElem.textContent = '';
+      loginError.textContent = '';
 
       if (!email || !password) {
-        errorElem.style.color = 'red';
-        errorElem.textContent = 'Wpisz email i hasło!';
+        loginError.style.color = 'red';
+        loginError.textContent = 'Wpisz email i hasło!';
         return;
       }
 
       auth.createUserWithEmailAndPassword(email, password)
         .then(() => {
-          errorElem.style.color = 'green';
-          errorElem.textContent = 'Konto utworzone pomyślnie! Możesz się teraz zalogować.';
+          loginError.style.color = 'green';
+          loginError.textContent = 'Konto utworzone pomyślnie! Możesz się teraz zalogować.';
           document.getElementById('email').value = '';
           document.getElementById('password').value = '';
         })
         .catch(err => {
-          errorElem.style.color = 'red';
-          errorElem.textContent = 'Błąd przy rejestracji: ' + err.message;
+          loginError.style.color = 'red';
+          loginError.textContent = 'Błąd przy rejestracji: ' + err.message;
         });
     }
 
@@ -120,7 +126,7 @@
       }
     });
 
-    // FUNKCJA DODAWANIA FILMU
+    // DODAWANIE FILMU
     function addVideo() {
       const title = document.getElementById('title').value.trim();
       const url = document.getElementById('url').value.trim();
@@ -144,17 +150,13 @@
       }).catch(err => alert(err.message));
     }
 
-    // FUNKCJA GENERUJĄCA MINIATURKĘ / VIDEO
+    // GENEROWANIE MINIATUR / VIDEO
     function generateVideoEmbed(url) {
       try {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
           let videoId;
-          if (url.includes('youtu.be')) {
-            videoId = url.split('/').pop();
-          } else {
-            const params = new URL(url).searchParams;
-            videoId = params.get('v');
-          }
+          if (url.includes('youtu.be')) videoId = url.split('/').pop();
+          else videoId = new URL(url).searchParams.get('v');
           return `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
         } else if (url.includes('vimeo.com')) {
           const videoId = url.split('/').pop();
@@ -197,7 +199,6 @@
         });
     }
 
-    // USUWANIE FILMU
     function deleteVideo(id) {
       if(confirm('Na pewno chcesz usunąć ten film?')) {
         db.collection('videos').doc(id).delete().catch(err => alert(err.message));
