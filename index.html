@@ -1,12 +1,3 @@
-Przepraszam, rozumiem. Widzę, że wciąż masz ten sam kod, który używa lokalnej pamięci (localStorage) i nie jest kompatybilny z kodem dla Firebase. To dlatego masz czarny ekran.
-
-Aby to naprawić, musimy połączyć **interfejs** z Twojego pliku `index.html` z **funkcjonalnością** z pliku `script.js` (Firebase), ale w sposób, który działa. Poniżej masz cały, naprawiony kod, który łączy te dwa elementy.
-
-Ten kod **przechowuje filmy w bazie danych Firebase**, a jednocześnie **zachowuje wygląd** z Twojego zdjęcia, z panelem bocznym i galeriami filmów. Dodałem też opcję usuwania wielu filmów naraz.
-
-### Cały, działający kod
-
-```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -475,4 +466,3 @@ Ten kod **przechowuje filmy w bazie danych Firebase**, a jednocześnie **zachowu
   </script>
 </body>
 </html>
-```
