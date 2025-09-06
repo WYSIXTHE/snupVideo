@@ -65,22 +65,42 @@
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const errorElem = document.getElementById('loginError');
+      errorElem.textContent = '';
+
+      if (!email || !password) {
+        errorElem.textContent = 'Wpisz email i hasło!';
+        return;
+      }
+
       auth.signInWithEmailAndPassword(email, password)
-        .catch(err => document.getElementById('loginError').textContent = err.message);
+        .then(() => { errorElem.textContent = ''; })
+        .catch(() => { errorElem.textContent = 'Niepoprawne logowanie lub hasło.'; });
     }
 
     // REJESTRACJA
     function register() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const errorElem = document.getElementById('loginError');
+      errorElem.textContent = '';
+
+      if (!email || !password) {
+        errorElem.textContent = 'Wpisz email i hasło!';
+        return;
+      }
+
       auth.createUserWithEmailAndPassword(email, password)
-        .catch(err => document.getElementById('loginError').textContent = err.message);
+        .then(() => { errorElem.textContent = 'Konto utworzone pomyślnie! Możesz się zalogować.'; })
+        .catch(() => { errorElem.textContent = 'Błąd przy rejestracji: email już istnieje lub hasło za krótkie.'; });
     }
 
+    // WYLOGOWANIE
     function logout() {
       auth.signOut();
     }
 
+    // OBSŁUGA STANU ZALOGOWANIA
     auth.onAuthStateChanged(user => {
       if (user) {
         loginDiv.classList.add('hidden');
@@ -93,7 +113,7 @@
       }
     });
 
-    // FUNKCJA DODAWANIA FILMU
+    // DODAWANIE FILMU
     function addVideo() {
       const title = document.getElementById('title').value.trim();
       const url = document.getElementById('url').value.trim();
@@ -117,7 +137,7 @@
       }).catch(err => alert(err.message));
     }
 
-    // FUNKCJA GENERUJĄCA MINIATURKĘ / VIDEO
+    // GENEROWANIE MINIATURKI / VIDEO
     function generateVideoEmbed(url) {
       try {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
