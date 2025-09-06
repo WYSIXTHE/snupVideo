@@ -1,277 +1,253 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VideoLinki – Wideoteka</title>
+  <meta charset="UTF-8">
+  <title>VideoLinki</title>
   <style>
-    :root {
-      --bg:#0b0d10;
-      --panel:#141820;
-      --card:#1a1f2b;
-      --muted:#9aa4b2;
-      --text:#e6e9ee;
-      --acc:#6ea8fe;
-      --danger:#ff6464;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
+    * { box-sizing: border-box; }
     body {
-      font-family:system-ui,Roboto,Arial,sans-serif;
-      background:linear-gradient(90deg,#0b0d10,#0f1320);
-      color:var(--text);
-      display:flex;
-      height:100vh;
-      overflow:hidden;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      min-height: 100vh;
     }
-    /* PANEL LEWY */
-    aside {
-      width:300px;
-      background:var(--panel);
-      border-right:1px solid #1f2633;
-      display:flex;
-      flex-direction:column;
-      padding:20px;
-      gap:16px;
+    header {
+      padding: 10px;
+      border-bottom: 1px solid #30363d;
+      text-align: center;
+      background: #161b22;
     }
-    aside h1 { font-size:18px; margin-bottom:10px; }
-    aside form { display:flex; flex-direction:column; gap:10px; }
-    input, textarea {
-      padding:10px 12px;
-      border-radius:8px;
-      border:1px solid #223148;
-      background:#0d1220;
-      color:var(--text);
-    }
-    input::placeholder, textarea::placeholder { color:#6f7d92; }
-    button {
-      padding:10px 12px;
-      border-radius:8px;
-      border:1px solid #24418c;
-      background:linear-gradient(180deg,#1c3c8d,#142b63);
-      color:#fff;
-      font-weight:600;
-      cursor:pointer;
-    }
-    button:hover { filter:brightness(1.1); }
-    .danger { border:1px solid #802828; background:linear-gradient(180deg,#a22,#711); }
-    .chip { font-size:13px; padding:6px 10px; border-radius:999px; border:1px solid #263145; background:#0b0d10; color:var(--muted); display:inline-block; }
-
-    /* GALERIA */
     main {
-      flex:1;
-      overflow:auto;
-      padding:20px;
+      flex: 1;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
     }
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-      gap:16px;
+    aside {
+      width: 300px;
+      border-left: 1px solid #30363d;
+      background: #161b22;
+      padding: 15px;
     }
-    .card {
-      background:var(--card);
-      border:1px solid #1f2633;
-      border-radius:12px;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
+    input, textarea, button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
     }
-    .thumb {
-      position:relative;
-      aspect-ratio:16/9;
-      background:#0c111b;
-      display:grid;
-      place-items:center;
+    input, textarea {
+      background: #21262d;
+      color: #c9d1d9;
     }
-    .thumb img { width:100%; height:100%; object-fit:cover; }
-    .thumb .play {
-      position:absolute; inset:0;
-      display:grid; place-items:center;
+    button {
+      background: #238636;
+      color: #fff;
+      cursor: pointer;
     }
-    .thumb .play button {
-      width:48px; height:48px;
-      border-radius:999px;
-      border:1px solid #2c3750;
-      background:rgba(20,24,32,.65);
+    button:hover {
+      background: #2ea043;
     }
-    .thumb .play button:hover { outline:2px solid #2c6fff3a; }
-    .meta { padding:10px; font-size:14px; }
-    .meta .title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .meta .url { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+    .video-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .video-card:hover { transform: scale(1.02); }
+    .video-card h3 { margin: 0 0 5px 0; font-size: 16px; }
+    .video-card p { margin: 0; font-size: 13px; opacity: 0.7; }
 
-    /* MODAL */
-    dialog {
-      width:min(960px,96vw);
-      border:none;
-      border-radius:12px;
-      padding:0;
-      overflow:hidden;
-      background:#0b0d10;
+    /* FULLSCREEN PLAYER */
+    #playerPage {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      background: #000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
     }
-    dialog::backdrop { background:rgba(3,6,15,.7); }
-    .player-head {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:8px 12px;
-      border-bottom:1px solid #1f2633;
+    #playerHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
     }
-    .player-body iframe, .player-body video {
-      width:100%; height:min(60vh,60vw);
-      display:block; background:#000;
+    #playerBody {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
     }
-    .comments {
-      padding:12px;
-      border-top:1px solid #1f2633;
-      max-height:200px;
-      overflow-y:auto;
+    #playerBody iframe, 
+    #playerBody video {
+      width: 100%;
+      height: 100%;
+      max-height: 70vh;
     }
-    .comment { margin-bottom:8px; }
-    .comment strong { color:var(--acc); margin-right:6px; }
-    .comment-form {
-      display:flex; gap:8px; padding:10px; border-top:1px solid #1f2633;
+    #commentsList {
+      padding: 10px;
+      background: #161b22;
+      max-height: 25vh;
+      overflow-y: auto;
     }
-    .comment-form input {
-      flex:1;
+    .comment {
+      background: #21262d;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      color: #fff; /* komentarze białe */
     }
-    footer {
-      font-size:12px; color:var(--muted);
-      text-align:center; margin-top:auto;
+    #commentForm {
+      display: flex;
+      padding: 10px;
+      background: #161b22;
+    }
+    #commentInput {
+      flex: 1;
+      margin-right: 8px;
     }
   </style>
 </head>
 <body>
-  <!-- PANEL LEWY -->
+  <header>
+    <h1>📺 VideoLinki</h1>
+  </header>
+
+  <main id="videoList"></main>
+
   <aside>
-    <h1>🎬 VideoLinki</h1>
-    <form id="addForm">
-      <input id="urlInput" type="url" placeholder="Link do filmu (YouTube/Vimeo/mp4)" required>
-      <input id="titleInput" type="text" placeholder="Tytuł (opcjonalny)">
-      <button type="submit">➕ Dodaj</button>
-    </form>
-    <div><span id="countChip" class="chip">0 filmów</span></div>
-    <button id="clearBtn" class="danger">🗑️ Wyczyść wszystko</button>
-    <input id="searchInput" type="text" placeholder="🔍 Szukaj...">
-    <footer>Zapis lokalny w przeglądarce</footer>
+    <h2>Dodaj film</h2>
+    <input id="title" placeholder="Tytuł">
+    <input id="url" placeholder="Link (YouTube/Vimeo/pliki)">
+    <textarea id="description" placeholder="Opis"></textarea>
+    <button onclick="addVideo()">Dodaj</button>
   </aside>
 
-  <!-- GALERIA -->
-  <main>
-    <div id="grid" class="grid"></div>
-  </main>
-
-  <!-- ODTWARZACZ -->
-  <dialog id="player">
-    <div class="player-head">
+  <!-- FULLSCREEN PLAYER -->
+  <div id="playerPage">
+    <div id="playerHeader">
       <div>
         <div id="playerTitle" style="font-weight:600"></div>
         <div id="playerSub" style="font-size:12px;opacity:.7"></div>
       </div>
-      <button id="closeBtn" class="chip">✖ Zamknij</button>
+      <button id="closeBtn">✖ Zamknij</button>
     </div>
-    <div class="player-body" id="playerBody"></div>
-
-    <!-- KOMENTARZE -->
-    <div class="comments" id="commentsList"></div>
-    <form class="comment-form" id="commentForm">
+    <div id="playerBody"></div>
+    <div id="commentsList"></div>
+    <form id="commentForm">
       <input id="commentInput" type="text" placeholder="Dodaj komentarz..." required>
       <button type="submit">💬</button>
     </form>
-  </dialog>
+  </div>
 
   <script>
     const $ = s => document.querySelector(s);
-    const dbKey = 'videolinki.v2';
-    const commentsKey = 'videolinki.comments.v1';
-    let items = JSON.parse(localStorage.getItem(dbKey) || '[]');
-    let comments = JSON.parse(localStorage.getItem(commentsKey) || '{}');
+    let videos = [];
+    let comments = {};
     let currentId = null;
+    let anonCounter = 1;
 
-    function save(){ localStorage.setItem(dbKey, JSON.stringify(items)); }
-    function saveComments(){ localStorage.setItem(commentsKey, JSON.stringify(comments)); }
-    function fmtCount(n){ return n===1? "1 film" : (n<5? n+" filmy" : n+" filmów"); }
-
-    function parseUrl(raw){
-      try{ const url = new URL(raw);
-        if(url.hostname.includes('youtube')||url.hostname==='youtu.be'){
-          let id=url.searchParams.get('v'); if(!id) id=url.pathname.split('/').pop();
-          return {type:'yt',embed:`https://www.youtube.com/embed/${id}`,thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg`};
-        }
-        if(url.hostname.includes('vimeo')){
-          let id=url.pathname.split('/').filter(Boolean).pop();
-          return {type:'vimeo',embed:`https://player.vimeo.com/video/${id}`};
-        }
-        if(/\.(mp4|webm|ogg)$/i.test(url.pathname)){ return {type:'file',src:url.toString()}; }
-        return {type:'iframe',embed:url.toString()};
-      }catch{ return {type:'unknown'}; }
-    }
-
-    function render(){
-      const grid=$('#grid'); grid.innerHTML='';
-      const q=$('#searchInput').value.toLowerCase();
-      const filtered=items.filter(i=>i.title.toLowerCase().includes(q)||i.url.toLowerCase().includes(q));
-      $('#countChip').textContent=fmtCount(filtered.length);
-      for(const it of filtered){
-        const card=document.createElement('div'); card.className='card';
-        const thumb=document.createElement('div'); thumb.className='thumb';
-        if(it.thumb){ let img=new Image(); img.src=it.thumb; thumb.appendChild(img);}
-        const play=document.createElement('div'); play.className='play';
-        const btn=document.createElement('button'); play.appendChild(btn); thumb.appendChild(play);
-        const meta=document.createElement('div'); meta.className='meta';
-        meta.innerHTML=`<div class="title">${it.title}</div><div class="url">${it.url}</div>`;
-        card.appendChild(thumb); card.appendChild(meta); grid.appendChild(card);
-        btn.onclick=()=>openPlayer(it);
+    function addVideo() {
+      const title = $('#title').value.trim();
+      const url = $('#url').value.trim();
+      const desc = $('#description').value.trim();
+      if (!title || !url) return alert('Podaj tytuł i link!');
+      const id = Date.now().toString();
+      let embed = url;
+      let type = 'file';
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        type = 'yt';
+        let vid;
+        if (url.includes('youtu.be')) vid = url.split('/').pop();
+        else vid = new URL(url).searchParams.get('v');
+        embed = "https://www.youtube.com/embed/" + vid;
+      } else if (url.includes('vimeo.com')) {
+        type = 'vimeo';
+        embed = "https://player.vimeo.com/video/" + url.split('/').pop();
       }
+      const item = { id, title, url, desc, type, embed };
+      videos.push(item);
+      renderVideos();
+      $('#title').value = $('#url').value = $('#description').value = '';
     }
 
-    function renderComments(id){
-      const list=$('#commentsList');
-      list.innerHTML='';
-      const arr=comments[id]||[];
-      arr.forEach((c,i)=>{
-        const div=document.createElement('div');
-        div.className='comment';
-        div.innerHTML=`<strong>Anonimowy-${i+1}:</strong> ${c}`;
+    function renderVideos() {
+      const list = $('#videoList');
+      list.innerHTML = '';
+      videos.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `<h3>${v.title}</h3><p>${v.desc}</p>`;
+        card.onclick = () => openPlayer(v);
+        list.appendChild(card);
+      });
+    }
+
+    function openPlayer(v) {
+      currentId = v.id;
+      $('#playerTitle').textContent = v.title;
+      $('#playerSub').textContent = v.url;
+      $('#playerBody').innerHTML = '';
+      if (v.type === 'yt' || v.type === 'vimeo') {
+        const f = document.createElement('iframe');
+        f.src = v.embed;
+        f.allowFullscreen = true;
+        f.frameBorder = 0;
+        $('#playerBody').appendChild(f);
+      } else {
+        const vid = document.createElement('video');
+        vid.src = v.url;
+        vid.controls = true;
+        vid.autoplay = true;
+        $('#playerBody').appendChild(vid);
+      }
+      renderComments(v.id);
+      document.querySelector('main').style.display = "none";
+      document.querySelector('aside').style.display = "none";
+      $('#playerPage').style.display = "flex";
+    }
+
+    $('#closeBtn').onclick = () => {
+      $('#playerPage').style.display = "none";
+      document.querySelector('main').style.display = "";
+      document.querySelector('aside').style.display = "";
+    };
+
+    function renderComments(id) {
+      const list = $('#commentsList');
+      list.innerHTML = '';
+      (comments[id] || []).forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment';
+        div.textContent = c;
         list.appendChild(div);
       });
     }
 
-    function openPlayer(it){
-      currentId=it.id;
-      $('#playerTitle').textContent=it.title;
-      $('#playerSub').textContent=it.url;
-      $('#playerBody').innerHTML='';
-      if(it.type==='yt'||it.type==='vimeo'||it.type==='iframe'){
-        const f=document.createElement('iframe'); f.src=it.embed; f.allowFullscreen=true; f.frameBorder=0;
-        $('#playerBody').appendChild(f);
-      } else if(it.type==='file'){
-        const v=document.createElement('video'); v.src=it.src; v.controls=true; v.play();
-        $('#playerBody').appendChild(v);
-      }
-      renderComments(it.id);
-      $('#player').showModal();
-    }
-
-    $('#closeBtn').onclick=()=>$('#player').close();
-    $('#addForm').onsubmit=e=>{
+    $('#commentForm').addEventListener('submit', e => {
       e.preventDefault();
-      const url=$('#urlInput').value.trim(); if(!url) return;
-      const parsed=parseUrl(url);
-      const rec={id:Math.random().toString(36).slice(2),url,title:$('#titleInput').value.trim()||url,...parsed};
-      items.unshift(rec); save(); render(); e.target.reset();
-    };
-    $('#clearBtn').onclick=()=>{ if(confirm('Na pewno usunąć wszystkie?')){ items=[]; save(); render(); } };
-    $('#searchInput').oninput=render;
-
-    $('#commentForm').onsubmit=e=>{
-      e.preventDefault();
-      if(!currentId) return;
-      const txt=$('#commentInput').value.trim(); if(!txt) return;
-      comments[currentId]=comments[currentId]||[];
-      comments[currentId].push(txt);
-      saveComments();
-      $('#commentInput').value='';
+      const txt = $('#commentInput').value.trim();
+      if (!txt) return;
+      const name = "Anonimowy-" + anonCounter++;
+      const msg = `${name}: ${txt}`;
+      if (!comments[currentId]) comments[currentId] = [];
+      comments[currentId].push(msg);
+      $('#commentInput').value = '';
       renderComments(currentId);
-    };
-
-    render();
+    });
   </script>
 </body>
 </html>
