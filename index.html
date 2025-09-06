@@ -114,8 +114,22 @@
       border-bottom:1px solid #1f2633;
     }
     .player-body iframe, .player-body video {
-      width:100%; height:min(70vh,62vw);
+      width:100%; height:min(60vh,60vw);
       display:block; background:#000;
+    }
+    .comments {
+      padding:12px;
+      border-top:1px solid #1f2633;
+      max-height:200px;
+      overflow-y:auto;
+    }
+    .comment { margin-bottom:8px; }
+    .comment strong { color:var(--acc); margin-right:6px; }
+    .comment-form {
+      display:flex; gap:8px; padding:10px; border-top:1px solid #1f2633;
+    }
+    .comment-form input {
+      flex:1;
     }
     footer {
       font-size:12px; color:var(--muted);
@@ -153,15 +167,25 @@
       <button id="closeBtn" class="chip">✖ Zamknij</button>
     </div>
     <div class="player-body" id="playerBody"></div>
+
+    <!-- KOMENTARZE -->
+    <div class="comments" id="commentsList"></div>
+    <form class="comment-form" id="commentForm">
+      <input id="commentInput" type="text" placeholder="Dodaj komentarz..." required>
+      <button type="submit">💬</button>
+    </form>
   </dialog>
 
   <script>
     const $ = s => document.querySelector(s);
     const dbKey = 'videolinki.v2';
+    const commentsKey = 'videolinki.comments.v1';
     let items = JSON.parse(localStorage.getItem(dbKey) || '[]');
+    let comments = JSON.parse(localStorage.getItem(commentsKey) || '{}');
     let currentId = null;
 
     function save(){ localStorage.setItem(dbKey, JSON.stringify(items)); }
+    function saveComments(){ localStorage.setItem(commentsKey, JSON.stringify(comments)); }
     function fmtCount(n){ return n===1? "1 film" : (n<5? n+" filmy" : n+" filmów"); }
 
     function parseUrl(raw){
@@ -197,6 +221,18 @@
       }
     }
 
+    function renderComments(id){
+      const list=$('#commentsList');
+      list.innerHTML='';
+      const arr=comments[id]||[];
+      arr.forEach((c,i)=>{
+        const div=document.createElement('div');
+        div.className='comment';
+        div.innerHTML=`<strong>Anonimowy-${i+1}:</strong> ${c}`;
+        list.appendChild(div);
+      });
+    }
+
     function openPlayer(it){
       currentId=it.id;
       $('#playerTitle').textContent=it.title;
@@ -209,6 +245,7 @@
         const v=document.createElement('video'); v.src=it.src; v.controls=true; v.play();
         $('#playerBody').appendChild(v);
       }
+      renderComments(it.id);
       $('#player').showModal();
     }
 
@@ -222,6 +259,17 @@
     };
     $('#clearBtn').onclick=()=>{ if(confirm('Na pewno usunąć wszystkie?')){ items=[]; save(); render(); } };
     $('#searchInput').oninput=render;
+
+    $('#commentForm').onsubmit=e=>{
+      e.preventDefault();
+      if(!currentId) return;
+      const txt=$('#commentInput').value.trim(); if(!txt) return;
+      comments[currentId]=comments[currentId]||[];
+      comments[currentId].push(txt);
+      saveComments();
+      $('#commentInput').value='';
+      renderComments(currentId);
+    };
 
     render();
   </script>
