@@ -2,16 +2,15 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>VideoLinki</title>
+  <title>VideoLinki - Ciemne GUI</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>VideoLinki</h1>
-
-    <div class="add-video">
+    <!-- PANEL LEWY - FORMULARZ -->
+    <div class="panel left">
       <h2>Dodaj nowy film</h2>
       <input id="title" placeholder="Tytuł filmu">
       <input id="url" placeholder="Link do filmu (YouTube/Vimeo/plik)">
@@ -20,7 +19,8 @@
       <button onclick="addVideo()">Dodaj film</button>
     </div>
 
-    <div class="video-list">
+    <!-- PANEL PRAWY - LISTA FILMÓW -->
+    <div class="panel right">
       <h2>Lista filmów</h2>
       <div id="videoList"></div>
     </div>
