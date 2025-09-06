@@ -7,16 +7,19 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
     input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
-    button { padding: 8px 12px; margin: 5px 0; }
+    button { padding: 8px 12px; margin: 5px 5px 5px 0; }
     .video { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
     .hidden { display: none; }
+    iframe { max-width: 100%; height: 200px; }
+    ul { padding-left: 20px; }
   </style>
 </head>
 <body>
   <h1>VideoLinki</h1>
 
+  <!-- LOGOWANIE -->
   <div id="loginDiv">
     <h2>Logowanie / Rejestracja</h2>
     <input type="email" id="email" placeholder="Email">
@@ -26,11 +29,13 @@
     <p id="loginError" style="color:red;"></p>
   </div>
 
+  <!-- APLIKACJA -->
   <div id="appDiv" class="hidden">
     <button onclick="logout()">Wyloguj się</button>
+
     <h2>Dodaj film</h2>
     <input id="title" placeholder="Tytuł filmu">
-    <input id="url" placeholder="Link do filmu">
+    <input id="url" placeholder="Link do filmu (YouTube/Vimeo/plik)">
     <textarea id="description" placeholder="Opis filmu"></textarea>
     <textarea id="comments" placeholder="Komentarze (oddzielone enterem)"></textarea>
     <button onclick="addVideo()">Dodaj film</button>
@@ -40,7 +45,7 @@
   </div>
 
   <script>
-    // TODO: podmień konfigurację na swoją z Firebase
+    // KONFIGURACJA FIREBASE
     const firebaseConfig = {
       apiKey: "1:346817626388:web:4392536d75afabad728201",
       authDomain: "gvideo-e3622.firebaseapp.com",
@@ -49,7 +54,6 @@
       messagingSenderId: "346817626388",
       appId: "1:346817626388:web:4392536d75afabad728201"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -57,7 +61,7 @@
     const loginDiv = document.getElementById('loginDiv');
     const appDiv = document.getElementById('appDiv');
 
-    // Logowanie
+    // LOGOWANIE
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -65,7 +69,7 @@
         .catch(err => document.getElementById('loginError').textContent = err.message);
     }
 
-    // Rejestracja
+    // REJESTRACJA
     function register() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -89,7 +93,7 @@
       }
     });
 
-    // Dodawanie filmu
+    // FUNKCJA DODAWANIA FILMU
     function addVideo() {
       const title = document.getElementById('title').value.trim();
       const url = document.getElementById('url').value.trim();
@@ -110,10 +114,33 @@
         document.getElementById('url').value = '';
         document.getElementById('description').value = '';
         document.getElementById('comments').value = '';
-      });
+      }).catch(err => alert(err.message));
     }
 
-    // Wyświetlanie listy
+    // FUNKCJA GENERUJĄCA MINIATURKĘ / VIDEO
+    function generateVideoEmbed(url) {
+      try {
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+          let videoId;
+          if (url.includes('youtu.be')) {
+            videoId = url.split('/').pop();
+          } else {
+            const params = new URL(url).searchParams;
+            videoId = params.get('v');
+          }
+          return `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+        } else if (url.includes('vimeo.com')) {
+          const videoId = url.split('/').pop();
+          return `<iframe src="https://player.vimeo.com/video/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+        } else {
+          return `<video controls src="${url}"></video>`;
+        }
+      } catch(e) {
+        return `<a href="${url}" target="_blank">Otwórz film</a>`;
+      }
+    }
+
+    // ŁADOWANIE FILMÓW
     function loadVideos() {
       const userId = auth.currentUser.uid;
       db.collection('videos')
@@ -131,13 +158,23 @@
             const div = document.createElement('div');
             div.className = 'video';
             div.innerHTML = `
-              <strong>${v.title}</strong> - <a href="${v.url}" target="_blank">Oglądaj</a><br>
-              <em>${v.description}</em><br>
-              <strong>Komentarze:</strong><br>${v.comments.map(c => '- ' + c).join('<br>')}
+              <strong>${v.title}</strong>
+              <button onclick="deleteVideo('${doc.id}')">Usuń</button>
+              <div>${generateVideoEmbed(v.url)}</div>
+              <em>${v.description}</em>
+              <strong>Komentarze:</strong>
+              <ul>${v.comments.map(c => `<li>${c}</li>`).join('')}</ul>
             `;
             list.appendChild(div);
           });
         });
+    }
+
+    // USUWANIE FILMU
+    function deleteVideo(id) {
+      if(confirm('Na pewno chcesz usunąć ten film?')) {
+        db.collection('videos').doc(id).delete().catch(err => alert(err.message));
+      }
     }
   </script>
 </body>
