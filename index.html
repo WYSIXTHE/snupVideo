@@ -1,64 +1,54 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Strona Wideo</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>snupVideo - Store Filmów</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="header">
-        <h1>Moja Strona Wideo</h1>
-        <div class="search-container">
-            <input type="text" id="search-bar" placeholder="Szukaj filmów...">
-            <button id="search-button">Szukaj</button>
-        </div>
-    </header>
+  <header>
+    <h1>🎬 snupVideo – Galeria Filmów</h1>
+    <button id="openAddFilm">Dodaj film</button>
+  </header>
 
-    <main class="main-content">
-        <aside class="sidebar">
-            <h2>Opcje</h2>
-            <div class="option-group">
-                <h3>Dodaj Film</h3>
-                <input type="text" id="video-link" placeholder="Wklej link...">
-                <input type="text" id="video-title" placeholder="Podaj tytuł...">
-                <button id="add-video-button">Dodaj</button>
-            </div>
-            <div class="option-group">
-                <h3>Filtry</h3>
-                <p>Opcje filtrowania</p>
-            </div>
-            <div class="option-group">
-                <h3>Liczba filmów</h3>
-                <p><span id="video-count">0</span> filmów</p>
-            </div>
-        </aside>
+  <main id="filmsList">
+    <!-- Tutaj pojawią się filmy -->
+  </main>
 
-        <section class="video-main-section">
-            <div class="video-and-comments-wrapper">
-                <div id="main-video-player" class="player-placeholder">
-                    <p>Kliknij na film z listy, aby go odtworzyć.</p>
-                </div>
-                
-                <aside class="comments-sidebar">
-                    <h2>Komentarze</h2>
-                    <div id="comments-section">
-                        </div>
-                    <div class="add-comment-form">
-                        <textarea id="comment-input" placeholder="Dodaj anonimowy komentarz..."></textarea>
-                        <button id="submit-comment-button">Wyślij</button>
-                    </div>
-                </aside>
-            </div>
+  <!-- Modal dodawania filmu -->
+  <div id="modalBg" class="modal-bg hidden"></div>
+  <div id="modalAddFilm" class="modal hidden">
+    <form id="addFilmForm">
+      <h2>Dodaj nowy film</h2>
+      <label>Tytuł: <input name="title" required maxlength="80"></label>
+      <label>Link (YouTube lub mp4): <input name="url" required></label>
+      <label>Opis: <textarea name="desc" maxlength="200"></textarea></label>
+      <button type="submit">Dodaj</button>
+      <button type="button" id="closeModal">Anuluj</button>
+      <div class="error" id="addFilmError"></div>
+    </form>
+  </div>
 
-            <div class="video-list-container">
-                <h2>Lista Filmów</h2>
-                <div id="video-list">
-                    </div>
-            </div>
-        </section>
-    </main>
+  <template id="filmTemplate">
+    <section class="film">
+      <div class="video-container"></div>
+      <div class="film-info">
+        <h3 class="film-title"></h3>
+        <p class="film-desc"></p>
+      </div>
+      <div class="comments-section">
+        <h4>Komentarze</h4>
+        <ul class="comments-list"></ul>
+        <form class="add-comment-form">
+          <input name="nick" placeholder="Twój nick" required maxlength="20">
+          <input name="comment" placeholder="Dodaj komentarz..." required maxlength="120">
+          <button type="submit">Dodaj</button>
+        </form>
+      </div>
+    </section>
+  </template>
 
-    <script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
