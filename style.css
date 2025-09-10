@@ -174,13 +174,3 @@ body {
   background: #ffcf19;
   color: #232323;
 }
-
-@media (max-width: 900px) {
-  .sidebar { width: 70px; }
-  .main-content { margin-left: 70px; }
-  .sidebar-bottom { left: 7px; }
-  .add-btn, .search-btn { width: 54px; font-size: 0.9em; }
-  .logo { font-size: 1.2em; margin-left: 12px; }
-  .username { font-size: 0.85em; }
-  .avatar { width: 34px; height: 34px; }
-}
