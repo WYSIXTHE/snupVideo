@@ -34,27 +34,29 @@
             </div>
         </aside>
 
-        <section class="video-container">
-            <div id="main-video-player" class="player-placeholder">
-                <p>Kliknij na film z listy, aby go odtworzyć.</p>
+        <section class="video-main-section">
+            <div class="video-and-comments-wrapper">
+                <div id="main-video-player" class="player-placeholder">
+                    <p>Kliknij na film z listy, aby go odtworzyć.</p>
+                </div>
+                
+                <aside class="comments-sidebar">
+                    <h2>Komentarze</h2>
+                    <div id="comments-section">
+                        </div>
+                    <div class="add-comment-form">
+                        <textarea id="comment-input" placeholder="Dodaj anonimowy komentarz..."></textarea>
+                        <button id="submit-comment-button">Wyślij</button>
+                    </div>
+                </aside>
             </div>
 
-            <div class="video-list-title">
+            <div class="video-list-container">
                 <h2>Lista Filmów</h2>
                 <div id="video-list">
                     </div>
             </div>
         </section>
-
-        <aside class="comments-sidebar">
-            <h2>Komentarze</h2>
-            <div id="comments-section">
-                </div>
-            <div class="add-comment-form">
-                <textarea id="comment-input" placeholder="Dodaj anonimowy komentarz..."></textarea>
-                <button id="submit-comment-button">Wyślij</button>
-            </div>
-        </aside>
     </main>
 
     <script src="script.js"></script>
