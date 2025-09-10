@@ -19,8 +19,6 @@ function renderVideos() {
   videos.forEach(video => {
     const card = document.createElement('div');
     card.className = 'video-card';
-
-    // Miniatura placeholder (ciemny kwadrat) jeśli brak thumb
     card.innerHTML = `
       <div class="video-thumb" style="background:#232323"></div>
       <div class="video-footer">
