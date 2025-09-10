@@ -33,28 +33,26 @@ body {
 .main-content {
     display: flex;
     padding: 20px;
+    gap: 20px;
 }
 
-.sidebar, .comments-sidebar {
+.sidebar {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 250px;
-    margin-right: 20px;
+    min-width: 250px;
+    flex-shrink: 0;
 }
 
-.comments-sidebar {
-    margin-left: 20px;
-    margin-right: 0;
-}
-
-.video-container {
+.video-main-section {
     flex-grow: 1;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.video-and-comments-wrapper {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
 .player-placeholder {
@@ -66,7 +64,55 @@ body {
     align-items: center;
     font-size: 1.2em;
     border-radius: 8px;
-    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.comments-sidebar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 350px; /* Stała szerokość dla komentarzy */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#comments-section {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.add-comment-form {
+    margin-top: auto;
+}
+
+.add-comment-form textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+}
+
+.add-comment-form button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.video-list-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .video-list {
@@ -87,27 +133,4 @@ body {
 
 .video-item:hover {
     background-color: #e9e9e9;
-}
-
-.add-comment-form {
-    margin-top: 20px;
-}
-
-.add-comment-form textarea {
-    width: 100%;
-    height: 80px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: none;
-}
-
-.add-comment-form button {
-    margin-top: 10px;
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 }
