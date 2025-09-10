@@ -1,18 +1,29 @@
-<html>
+<!DOCTYPE html>
+<html lang="pl">
 <head>
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SnupVideo</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <div class="sidebar">
-        <!-- Sidebar content -->
+  <div class="sidebar">
+    <div class="logo">Snup<span>Video</span></div>
+    <button class="add-btn">Dodaj Film</button>
+    <button class="search-btn">Szukaj filmu</button>
+    <div class="sidebar-bottom">
+      <div class="avatar"></div>
+      <div class="username">
+        <span>NAZWA</span><br/>
+        <span>UŻYTKOWNIKA</span>
+      </div>
     </div>
-    <div class="main-content">
-        <h1>Nowy Układ Filmów</h1>
-        <button class="comment-button">Dodaj Komentarz</button>
-        <div class="comment-drawer">
-            <!-- Comment drawer content -->
-        </div>
-        <button class="yt-play-button">Odtwórz na YouTube</button>
+  </div>
+  <div class="main-content">
+    <div class="videos-grid" id="videos-grid">
+      <!-- Karty filmów generowane przez JS -->
     </div>
+  </div>
+  <script src="app.js"></script>
 </body>
 </html>
