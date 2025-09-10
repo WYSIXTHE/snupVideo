@@ -1,92 +1,51 @@
-// KONFIGURACJA FIREBASE
-const firebaseConfig = {
-  apiKey: "1:346817626388:web:4392536d75afabad728201",
-  authDomain: "gvideo-e3622.firebaseapp.com",
-  projectId: "gvideo-e3622",
-  storageBucket: "gvideo-e3622.appspot.com",
-  messagingSenderId: "346817626388",
-  appId: "1:346817626388:web:4392536d75afabad728201"
-};
+document.getElementById('add-video-button').addEventListener('click', function() {
+    const videoLink = document.getElementById('video-link').value;
+    const videoTitle = document.getElementById('video-title').value;
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    if (videoLink && videoTitle) {
+        // Poniższy kod tylko tworzy statyczny element.
+        // Prawdziwa strona musiałaby zamienić link na wideo YouTube
+        // i zapisać dane w bazie danych.
+        const videoList = document.getElementById('video-list');
+        const newVideoItem = document.createElement('div');
+        newVideoItem.classList.add('video-item');
+        newVideoItem.textContent = videoTitle;
+        newVideoItem.dataset.link = videoLink; // Przechowujemy link w atrybucie danych
 
-// DODAWANIE FILMU
-function addVideo() {
-  const title = document.getElementById('title').value.trim();
-  const url = document.getElementById('url').value.trim();
-  const description = document.getElementById('description').value.trim();
-  const comments = document.getElementById('comments').value.trim().split('\n').filter(c => c);
+        newVideoItem.addEventListener('click', function() {
+            // Tutaj logika do wyświetlenia wideo w "main-video-player"
+            // Musiałbyś użyć linku (this.dataset.link) i wbudować odtwarzacz YouTube
+            alert('Kliknięto wideo: ' + this.textContent);
+        });
 
-  if (!title || !url) {
-    alert('Wypełnij tytuł i link!');
-    return;
-  }
+        videoList.appendChild(newVideoItem);
 
-  db.collection('videos').add({
-    title,
-    url,
-    description,
-    comments,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    alert('Film dodany pomyślnie!');
-    document.getElementById('title').value = '';
-    document.getElementById('url').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('comments').value = '';
-  }).catch(err => alert(err.message));
-}
+        // Aktualizacja liczby filmów
+        const videoCount = document.querySelectorAll('.video-item').length;
+        document.getElementById('video-count').textContent = videoCount;
 
-// GENEROWANIE EMBED VIDEO
-function generateVideoEmbed(url) {
-  try {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      let videoId = url.includes('youtu.be') ? url.split('/').pop() : new URL(url).searchParams.get('v');
-      return `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    } else if (url.includes('vimeo.com')) {
-      const videoId = url.split('/').pop();
-      return `<iframe src="https://player.vimeo.com/video/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+        // Czyszczenie pól
+        document.getElementById('video-link').value = '';
+        document.getElementById('video-title').value = '';
     } else {
-      return `<video controls src="${url}"></video>`;
+        alert('Proszę podać link i tytuł filmu.');
     }
-  } catch(e) {
-    return `<a href="${url}" target="_blank">Otwórz film</a>`;
-  }
-}
+});
 
-// ŁADOWANIE FILMÓW
-function loadVideos() {
-  db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-    const list = document.getElementById('videoList');
-    list.innerHTML = '';
-    if (snapshot.empty) {
-      list.innerHTML = '<p>Brak filmów.</p>';
-      return;
+document.getElementById('submit-comment-button').addEventListener('click', function() {
+    const commentInput = document.getElementById('comment-input').value;
+
+    if (commentInput) {
+        // Tutaj logika do dodania komentarza do sekcji komentarzy
+        // Komentarze nie zostaną zapisane po odświeżeniu strony
+        const commentsSection = document.getElementById('comments-section');
+        const newComment = document.createElement('p');
+        newComment.textContent = 'Anonimowy: ' + commentInput;
+        commentsSection.appendChild(newComment);
+
+        // Czyszczenie pola komentarza
+        document.getElementById('comment-input').value = '';
+    } else {
+        alert('Proszę wpisać komentarz.');
     }
-    snapshot.forEach(doc => {
-      const v = doc.data();
-      const div = document.createElement('div');
-      div.className = 'video';
-      div.innerHTML = `
-        <strong>${v.title}</strong>
-        <button onclick="deleteVideo('${doc.id}')">Usuń</button>
-        <div>${generateVideoEmbed(v.url)}</div>
-        <em>${v.description}</em>
-        <strong>Komentarze:</strong>
-        <ul>${v.comments.map(c => `<li>${c}</li>`).join('')}</ul>
-      `;
-      list.appendChild(div);
-    });
-  });
-}
-
-// USUWANIE FILMU
-function deleteVideo(id) {
-  if(confirm('Na pewno chcesz usunąć ten film?')) {
-    db.collection('videos').doc(id).delete().catch(err => alert(err.message));
-  }
-}
-
-// Inicjalizacja
-loadVideos();
+});
